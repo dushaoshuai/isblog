@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -21,7 +21,7 @@ type issue struct {
 
 type issues []issue
 
-func main() {
+func foo() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println(err)
