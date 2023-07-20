@@ -1,0 +1,81 @@
+[
+  {
+    "url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121",
+    "repository_url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io",
+    "labels_url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121/labels{/name}",
+    "comments_url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121/comments",
+    "events_url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121/events",
+    "html_url": "https://github.com/dushaoshuai/dushaoshuai.github.io/issues/121",
+    "id": 1806812594,
+    "node_id": "I_kwDOG7AMTs5rscWy",
+    "number": 121,
+    "title": "Redis: 原子命令",
+    "user": {
+      "login": "dushaoshuai",
+      "id": 56815047,
+      "node_id": "MDQ6VXNlcjU2ODE1MDQ3",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56815047?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/dushaoshuai",
+      "html_url": "https://github.com/dushaoshuai",
+      "followers_url": "https://api.github.com/users/dushaoshuai/followers",
+      "following_url": "https://api.github.com/users/dushaoshuai/following{/other_user}",
+      "gists_url": "https://api.github.com/users/dushaoshuai/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/dushaoshuai/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/dushaoshuai/subscriptions",
+      "organizations_url": "https://api.github.com/users/dushaoshuai/orgs",
+      "repos_url": "https://api.github.com/users/dushaoshuai/repos",
+      "events_url": "https://api.github.com/users/dushaoshuai/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/dushaoshuai/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 3879748851,
+        "node_id": "LA_kwDOG7AMTs7nQETz",
+        "url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/labels/draft",
+        "name": "draft",
+        "color": "9F4DB6",
+        "default": false,
+        "description": "Still only a draft"
+      },
+      {
+        "id": 5626720598,
+        "node_id": "LA_kwDOG7AMTs8AAAABT2DxVg",
+        "url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/labels/Redis",
+        "name": "Redis",
+        "color": "DA67A7",
+        "default": false,
+        "description": ""
+      }
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [],
+    "milestone": null,
+    "comments": 0,
+    "created_at": "2023-07-17T01:38:00Z",
+    "updated_at": "2023-07-19T03:51:02Z",
+    "closed_at": null,
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "body": "`GETSET`\r\n`MSET`\r\n`LMOVE`\r\n\r\n> `INCR`\r\nhttps://redis.io/docs/data-types/strings/#:~:text=that%20INCR%20is-,atomic,-%3F%20That%20even%20multiple\r\nWhat does it mean that INCR is atomic? That even multiple clients issuing INCR against the same key will never enter into a race condition. For instance, it will never happen that client 1 reads \"10\", client 2 reads \"10\" at the same time, both increment to 11, and set the new value to 11. The final value will always be 12 and the read-increment-set operation is performed while all the other clients are not executing a command at the same time.\r\n\r\n事务也可以认为是原子的，但是不支持在发生错误时回滚。\r\n脚本也是事务性的。",
+    "reactions": {
+      "url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues/121/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null
+  }
+]
