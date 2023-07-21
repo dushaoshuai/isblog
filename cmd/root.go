@@ -26,6 +26,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,9 +42,6 @@ var rootCmd = &cobra.Command{
 	Short: "Write blogs using Github issues",
 	Long: `Write blogs using Github issues.
 Sync blogs to and from Github issues.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 	Version: "v0.1.0",
 }
 
@@ -59,7 +57,7 @@ func Execute(ctx context.Context) {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "$HOME/.config/.isblog.yaml", "config file")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default $HOME/.config/.isblog.yaml)")
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -72,10 +70,9 @@ func initConfig() {
 		home, err := os.UserHomeDir()
 		cobra.CheckErr(err)
 
-		// Search config in home directory with name ".isblog" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(filepath.Join(home, ".config"))
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".config/.isblog")
+		viper.SetConfigName(".isblog")
 	}
 
 	viper.AutomaticEnv() // read in environment variables that match

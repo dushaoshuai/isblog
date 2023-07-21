@@ -33,10 +33,8 @@ import (
 )
 
 var (
-	issueNum          int
-	issueNumName      string = "issue-number"
-	issueNumShorthand        = "i"
-	issueNumUsage            = "The number that identifies the issue"
+	issueNum     int
+	issueNumName string = "issue-number"
 )
 
 func pullOne(cmd *cobra.Command, args []string) error {
@@ -62,10 +60,16 @@ func pullList(cmd *cobra.Command, args []string) error {
 		perPage = 100
 		page    = 0
 		es      []error
+		ctx     = cmd.Context()
 	)
 
 	for {
-		page++
+		select {
+		case <-ctx.Done():
+			return errors.Join(append(es, ctx.Err())...)
+		default:
+			page++
+		}
 
 		q := url.Values{}
 		q.Add("per_page", strconv.Itoa(perPage))
@@ -75,7 +79,7 @@ func pullList(cmd *cobra.Command, args []string) error {
 			queryParams: q,
 		}
 
-		resp, err := req.do(cmd.Context())
+		resp, err := req.do(ctx)
 		if err != nil {
 			es = append(es, err)
 			continue
@@ -125,5 +129,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	pullCmd.Flags().IntVarP(&issueNum, issueNumName, issueNumShorthand, 0, issueNumUsage)
+	pullCmd.Flags().IntVarP(&issueNum, issueNumName, "i", 0, "The number that identifies the issue")
 }

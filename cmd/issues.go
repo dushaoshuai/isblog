@@ -8,11 +8,18 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 var (
+	owner = "owner"
+	repo  = "repo"
+	token = "token"
+
 	bufW bufio.Writer
 )
 
@@ -100,21 +107,22 @@ func (i *issue) fromFile(file string) error {
 
 type httpReq struct {
 	method      string
-	needAuth    bool
 	pathParams  []string
 	body        io.Reader
 	queryParams url.Values
 }
 
 func (r *httpReq) do(ctx context.Context) ([]byte, error) {
-	req, err := http.NewRequestWithContext(ctx, r.method, "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues", r.body)
+	urlv := "https://api.github.com/repos/" + path.Join(viper.GetString(owner), viper.GetString(repo), "issues")
+	req, err := http.NewRequestWithContext(ctx, r.method, urlv, r.body)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Accept", "application/vnd.github+json")
-	if r.needAuth {
-		req.Header.Add("Authorization", "Bearer <TOKEN>")
-	}
+
+	// Authenticated requests get a higher rate limit.
+	req.Header.Add("Authorization", "Bearer "+viper.GetString(token))
+
 	if len(r.pathParams) != 0 {
 		req.URL = req.URL.JoinPath(r.pathParams...)
 	}

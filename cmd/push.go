@@ -49,7 +49,6 @@ func pushRunE(cmd *cobra.Command, args []string) error {
 
 	req := httpReq{
 		method:     http.MethodPatch,
-		needAuth:   true,
 		pathParams: []string{strconv.Itoa(issu.Number)},
 		body:       bytes.NewReader(body),
 	}
