@@ -23,19 +23,47 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
+	"net/http"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
+var (
+	localBlog     string
+	localBlogName = "file"
+)
+
+func pushRunE(cmd *cobra.Command, args []string) error {
+	var issu issue
+	err := issu.fromFile(localBlog)
+	if err != nil {
+		return err
+	}
+	body, err := json.Marshal(issu)
+	if err != nil {
+		return err
+	}
+
+	req := httpReq{
+		method:     http.MethodPatch,
+		needAuth:   true,
+		pathParams: []string{strconv.Itoa(issu.Number)},
+		body:       bytes.NewReader(body),
+	}
+	_, err = req.do(cmd.Context())
+	return err
+}
+
 // pushCmd represents the push command
 var pushCmd = &cobra.Command{
-	Use:   "push -i issue-number",
+	Use:   "push -f file",
 	Short: "Push the local blog to the remote Github issue",
-	Long:  `Push the local blog to the remote Github issue.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("push called")
-	},
+	Long: `Push the local blog to the remote Github issue.
+Currently the -f flag is required.`,
+	RunE: pushRunE,
 }
 
 func init() {
@@ -49,6 +77,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	pushCmd.Flags().IntVarP(&issueNum, issueNumName, issueNumShorthand, 0, issueNumUsage)
-	pushCmd.MarkFlagRequired(issueNumName)
+	pushCmd.Flags().StringVarP(&localBlog, localBlogName, "f", "", "The local blog file")
+	pushCmd.MarkFlagRequired(localBlogName)
 }

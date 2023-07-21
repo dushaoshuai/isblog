@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	buf bufio.Writer
+	bufW bufio.Writer
 )
 
 type issue struct {
@@ -44,18 +44,63 @@ func (i *issue) toFile() error {
 		return err
 	}
 	defer f.Close()
-	buf.Reset(f)
+	bufW.Reset(f)
 
-	buf.WriteString(strconv.Itoa(i.Number))
-	buf.WriteByte('\n')
-	buf.WriteString(i.Title)
-	buf.WriteByte('\n')
-	buf.WriteString(i.Body)
-	return buf.Flush()
+	bufW.WriteString("===================================\n")
+	bufW.WriteString("Do not edit the issue number line.\n")
+	bufW.WriteString("Do not delete the issue title line.\n")
+	bufW.WriteString(strconv.Itoa(i.Number))
+	bufW.WriteByte('\n')
+	bufW.WriteString(i.Title)
+	bufW.WriteByte('\n')
+	bufW.WriteString("===================================\n\n")
+	bufW.WriteString(i.Body)
+	return bufW.Flush()
+}
+
+func (i *issue) fromFile(file string) error {
+	f, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+
+	var (
+		fileScanner = bufio.NewScanner(f)
+		bodyBuilder strings.Builder // to build issue body
+
+		l = 0 // line number
+	)
+	for fileScanner.Scan() {
+		l++
+		if l <= 3 || l == 6 || l == 7 {
+			continue
+		}
+		if l == 4 { // issue number
+			n, err := strconv.Atoi(fileScanner.Text())
+			if err != nil {
+				return err
+			}
+			i.Number = n
+			continue
+		}
+		if l == 5 { // issue title
+			i.Title = fileScanner.Text()
+			continue
+		}
+		bodyBuilder.Write(fileScanner.Bytes())
+		bodyBuilder.WriteByte('\n')
+	}
+	if fileScanner.Err() != nil {
+		return err
+	}
+	i.Body = bodyBuilder.String()
+
+	return nil
 }
 
 type httpReq struct {
 	method      string
+	needAuth    bool
 	pathParams  []string
 	body        io.Reader
 	queryParams url.Values
@@ -67,6 +112,9 @@ func (r *httpReq) do(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	req.Header.Add("Accept", "application/vnd.github+json")
+	if r.needAuth {
+		req.Header.Add("Authorization", "Bearer <TOKEN>")
+	}
 	if len(r.pathParams) != 0 {
 		req.URL = req.URL.JoinPath(r.pathParams...)
 	}
