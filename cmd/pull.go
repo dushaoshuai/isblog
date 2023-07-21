@@ -33,8 +33,10 @@ import (
 )
 
 var (
-	issueNum     int
-	issueNumName string = "issue-number"
+	issueNum          int
+	issueNumName      string = "issue-number"
+	issueNumShorthand        = "i"
+	issueNumUsage            = "The number that identifies the issue"
 )
 
 func pullOne(cmd *cobra.Command, args []string) error {
@@ -100,13 +102,9 @@ func pullList(cmd *cobra.Command, args []string) error {
 // pullCmd represents the pull command
 var pullCmd = &cobra.Command{
 	Use:   "pull",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Pull the remote Github issue(s) to the local blog(s)",
+	Long: `Pull the remote Github issue(s) to the local blog(s).
+It overwrites any existing local blogs, so be careful not to lose local changes.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if cmd.Flags().Changed(issueNumName) {
 			return pullOne(cmd, args)
@@ -127,5 +125,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	pullCmd.Flags().IntVarP(&issueNum, issueNumName, "i", 0, "The number that identifies the issue")
+	pullCmd.Flags().IntVarP(&issueNum, issueNumName, issueNumShorthand, 0, issueNumUsage)
 }
