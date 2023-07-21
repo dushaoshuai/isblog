@@ -21,8 +21,16 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/dushaoshuai/isblog/cmd"
+import (
+	"context"
+	"time"
+
+	"github.com/dushaoshuai/isblog/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cmd.Execute(ctx)
 }

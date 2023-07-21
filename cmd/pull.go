@@ -22,10 +22,74 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
+
+func pullRunE(cmd *cobra.Command, args []string) error {
+	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodGet, "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Accept", "application/vnd.github+json")
+	q := url.Values{}
+	q.Add("per_page", strconv.Itoa(1))
+	q.Add("page", strconv.Itoa(4))
+	req.URL.RawQuery = q.Encode()
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		err = fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
+		return err
+	}
+
+	var issus issues
+	err = json.Unmarshal(body, &issus)
+	if err != nil {
+		return err
+	}
+
+	var es []error
+	for _, issu := range issus {
+		fname := fmt.Sprintf(
+			"%04d_%s.md",
+			issu.Number,
+			strings.ReplaceAll(issu.Title, " ", "_"),
+		)
+		f, err := os.Create(fname)
+		if err != nil {
+			es = append(es, err)
+			continue
+		}
+
+		_, err = f.WriteString(issu.Body)
+		if err != nil {
+			es = append(es, err)
+		}
+
+		f.Close()
+	}
+
+	return errors.Join(es...)
+}
 
 // pullCmd represents the pull command
 var pullCmd = &cobra.Command{
@@ -37,9 +101,7 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("pull called")
-	},
+	RunE: pullRunE,
 }
 
 func init() {
