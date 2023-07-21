@@ -57,48 +57,72 @@ func pullOne(cmd *cobra.Command, args []string) error {
 
 func pullList(cmd *cobra.Command, args []string) error {
 	var (
-		perPage = 100
-		page    = 0
+		ctx = cmd.Context()
+
+		perPage   = 100
+		page      = 0
+		issueChan = make(chan issue, perPage)
+
 		es      []error
-		ctx     = cmd.Context()
+		errChan = make(chan error)
 	)
 
-	for {
-		select {
-		case <-ctx.Done():
-			return errors.Join(append(es, ctx.Err())...)
-		default:
-			page++
-		}
-
-		q := url.Values{}
-		q.Add("per_page", strconv.Itoa(perPage))
-		q.Add("page", strconv.Itoa(page))
-		req := httpReq{
-			method:      http.MethodGet,
-			queryParams: q,
-		}
-
-		resp, err := req.do(ctx)
-		if err != nil {
+	go func() {
+		for err := range errChan {
 			es = append(es, err)
-			continue
+		}
+	}()
+
+	go func() {
+	loop:
+		for {
+			select {
+			case <-ctx.Done():
+				errChan <- ctx.Err()
+				break loop
+			default:
+				page++
+			}
+
+			q := url.Values{}
+			q.Add("per_page", strconv.Itoa(perPage))
+			q.Add("page", strconv.Itoa(page))
+			req := httpReq{
+				method:      http.MethodGet,
+				queryParams: q,
+			}
+
+			resp, err := req.do(ctx)
+			if err != nil {
+				errChan <- err
+				break // this should be a fatal error
+			}
+
+			var issueSlice []issue
+			err = json.Unmarshal(resp, &issueSlice)
+			if err != nil {
+				errChan <- err
+				break // this should be a fatal error
+			}
+
+			for _, issu := range issueSlice {
+				issueChan <- issu
+			}
+			if len(issueSlice) < perPage {
+				break
+			}
 		}
 
-		var issueSlice []issue
-		err = json.Unmarshal(resp, &issueSlice)
+		close(issueChan)
+	}()
+
+	for issu := range issueChan {
+		err := issu.toFile()
 		if err != nil {
-			es = append(es, err)
-			continue
-		}
-		for _, issu := range issueSlice {
-			es = append(es, issu.toFile())
-		}
-
-		if len(issueSlice) < perPage {
-			break
+			errChan <- err
 		}
 	}
+	close(errChan)
 
 	return errors.Join(es...)
 }

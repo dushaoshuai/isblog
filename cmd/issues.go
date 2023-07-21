@@ -113,20 +113,21 @@ type httpReq struct {
 }
 
 func (r *httpReq) do(ctx context.Context) ([]byte, error) {
-	urlv := "https://api.github.com/repos/" + path.Join(viper.GetString(owner), viper.GetString(repo), "issues")
+	urlv := "https://api.github.com/repos/" +
+		path.Join(viper.GetString(owner), viper.GetString(repo), "issues")
 	req, err := http.NewRequestWithContext(ctx, r.method, urlv, r.body)
 	if err != nil {
 		return nil, err
 	}
+
+	// Headers
 	req.Header.Add("Accept", "application/vnd.github+json")
-
-	// Authenticated requests get a higher rate limit.
-	req.Header.Add("Authorization", "Bearer "+viper.GetString(token))
-
+	req.Header.Add("Authorization", "Bearer "+viper.GetString(token)) // Authenticated requests get a higher rate limit.
+	// Path parameters
 	if len(r.pathParams) != 0 {
 		req.URL = req.URL.JoinPath(r.pathParams...)
 	}
-
+	// Query parameters
 	if r.queryParams != nil {
 		req.URL.RawQuery = r.queryParams.Encode()
 	}
