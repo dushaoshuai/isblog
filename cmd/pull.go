@@ -19,73 +19,79 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+
 package cmd
 
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 )
 
-func pullRunE(cmd *cobra.Command, args []string) error {
-	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodGet, "https://api.github.com/repos/dushaoshuai/dushaoshuai.github.io/issues", nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Accept", "application/vnd.github+json")
-	q := url.Values{}
-	q.Add("per_page", strconv.Itoa(1))
-	q.Add("page", strconv.Itoa(4))
-	req.URL.RawQuery = q.Encode()
+var (
+	issueNum     int
+	issueNumName string = "issue-number"
+)
 
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
+func pullOne(cmd *cobra.Command, args []string) error {
+	req := httpReq{
+		method:     http.MethodGet,
+		pathParams: []string{strconv.Itoa(issueNum)},
 	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-		return err
-	}
-
-	var issus issues
-	err = json.Unmarshal(body, &issus)
+	resp, err := req.do(cmd.Context())
 	if err != nil {
 		return err
 	}
 
-	var es []error
-	for _, issu := range issus {
-		fname := fmt.Sprintf(
-			"%04d_%s.md",
-			issu.Number,
-			strings.ReplaceAll(issu.Title, " ", "_"),
-		)
-		f, err := os.Create(fname)
+	var issu issue
+	err = json.Unmarshal(resp, &issu)
+	if err != nil {
+		return err
+	}
+	return issu.toFile()
+}
+
+func pullList(cmd *cobra.Command, args []string) error {
+	var (
+		perPage = 100
+		page    = 0
+		es      []error
+	)
+
+	for {
+		page++
+
+		q := url.Values{}
+		q.Add("per_page", strconv.Itoa(perPage))
+		q.Add("page", strconv.Itoa(page))
+		req := httpReq{
+			method:      http.MethodGet,
+			queryParams: q,
+		}
+
+		resp, err := req.do(cmd.Context())
 		if err != nil {
 			es = append(es, err)
 			continue
 		}
 
-		_, err = f.WriteString(issu.Body)
+		var issueSlice []issue
+		err = json.Unmarshal(resp, &issueSlice)
 		if err != nil {
 			es = append(es, err)
+			continue
+		}
+		for _, issu := range issueSlice {
+			es = append(es, issu.toFile())
 		}
 
-		f.Close()
+		if len(issueSlice) < perPage {
+			break
+		}
 	}
 
 	return errors.Join(es...)
@@ -101,7 +107,13 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	RunE: pullRunE,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		if cmd.Flags().Changed(issueNumName) {
+			return pullOne(cmd, args)
+		}
+		return pullList(cmd, args)
+	},
+	Args: cobra.NoArgs,
 }
 
 func init() {
@@ -115,5 +127,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// pullCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	pullCmd.Flags().IntVarP(&issueNum, issueNumName, "i", 0, "The number that identifies the issue")
 }
