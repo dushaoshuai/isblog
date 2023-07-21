@@ -46,27 +46,11 @@ func (i *issue) toFile() error {
 	defer f.Close()
 	buf.Reset(f)
 
-	// todo: How to do error handling better?
-	_, err = buf.WriteString(strconv.Itoa(i.Number))
-	if err != nil {
-		return err
-	}
-	err = buf.WriteByte('\n')
-	if err != nil {
-		return err
-	}
-	_, err = buf.WriteString(i.Title)
-	if err != nil {
-		return err
-	}
-	err = buf.WriteByte('\n')
-	if err != nil {
-		return err
-	}
-	_, err = buf.WriteString(i.Body)
-	if err != nil {
-		return err
-	}
+	buf.WriteString(strconv.Itoa(i.Number))
+	buf.WriteByte('\n')
+	buf.WriteString(i.Title)
+	buf.WriteByte('\n')
+	buf.WriteString(i.Body)
 	return buf.Flush()
 }
 
