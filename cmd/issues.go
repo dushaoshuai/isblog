@@ -53,14 +53,14 @@ func (i *issue) toFile() error {
 	defer f.Close()
 	bufW.Reset(f)
 
-	bufW.WriteString("===================================\n")
-	bufW.WriteString("Do not edit the issue number line.\n")
-	bufW.WriteString("Do not delete the issue title line.\n")
+	bufW.WriteString("<!--\n")
+	bufW.WriteString("Leave the issue number line untouched.\n")
+	bufW.WriteString("Update the title line to update the issue title.\n")
 	bufW.WriteString(strconv.Itoa(i.Number))
 	bufW.WriteByte('\n')
 	bufW.WriteString(i.Title)
 	bufW.WriteByte('\n')
-	bufW.WriteString("===================================\n\n")
+	bufW.WriteString("-->\n\n")
 	bufW.WriteString(i.Body)
 	return bufW.Flush()
 }

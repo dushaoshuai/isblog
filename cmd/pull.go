@@ -34,7 +34,7 @@ import (
 
 var (
 	issueNum     int
-	issueNumName string = "issue-number"
+	issueNumName = "issue-number"
 )
 
 func pullOne(cmd *cobra.Command, args []string) error {
