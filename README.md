@@ -28,6 +28,16 @@ Finally, I decided to write a CLI to make things simpler.
 
 # Usage
 
+The default config file is `$HOME/.config/.isblog.yaml`. An example config file:
+
+```yaml
+owner: dushaoshuai
+repo: dushaoshuai.github.io
+token: <MY-TOKEN>
+```
+
+Usage:
+
 ```bash
 $ isblog --help 
 Write blogs using Github issues.
