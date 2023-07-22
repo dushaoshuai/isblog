@@ -1,10 +1,10 @@
 # Install
 
 ```shell
-go install github.com/dushaoshuai/issues-blog@latest
+go install github.com/dushaoshuai/isblog@latest
 ```
 
-# What is issues-blog?
+# What is isblog?
 
 Write blogs using GitHub issues. Sync blogs to and from GitHub issues.
 
@@ -19,7 +19,7 @@ What it can not do:
 * delete a GitHub issue
 * many other things ...
 
-# Why issues-blog?
+# Why isblog?
 
 I write blogs (notes) using GitHub issues. After a few writings,
 I found that the issues web editor is not very convenient and efficient for writing long articles.
